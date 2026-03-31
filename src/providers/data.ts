@@ -3,6 +3,19 @@ import { createDataProvider, CreateDataProviderOptions } from "@refinedev/rest";
 import { CreateResponse, GetOneResponse, ListResponse } from "@/types";
 import { BACKEND_BASE_URL } from "@/constants";
 
+const listResponseCache = new WeakMap<Response, Promise<ListResponse>>();
+
+const getListPayload = (response: Response) => {
+  const cached = listResponseCache.get(response);
+  if (cached) {
+    return cached;
+  }
+
+  const payloadPromise = response.clone().json() as Promise<ListResponse>;
+  listResponseCache.set(response, payloadPromise);
+  return payloadPromise;
+};
+
 const options: CreateDataProviderOptions = {
   getList: {
     getEndpoint: ({ resource }) => resource,
@@ -52,12 +65,12 @@ const options: CreateDataProviderOptions = {
     },
 
     mapResponse: async (response) => {
-      const payload: ListResponse = await response.json();
+      const payload = await getListPayload(response);
       return payload.data ?? [];
     },
 
     getTotalCount: async (response) => {
-      const payload: ListResponse = await response.json();
+      const payload = await getListPayload(response);
       return payload.pagination?.total ?? payload.data?.length ?? 0;
     },
   },
