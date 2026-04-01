@@ -2,7 +2,21 @@ import { createDataProvider, CreateDataProviderOptions } from "@refinedev/rest";
 
 import { CreateResponse, GetOneResponse, ListResponse } from "@/types";
 import { BACKEND_BASE_URL } from "@/constants";
-
+import {HttpError} from "@refinedev/core";
+const buildHttpError =async (response:Response) :Promise<HttpError> =>{
+  let message= 'Request failed.';
+  try{
+    const payload =(await  response.json()) as {message?: string}
+    if(payload?.message) message = payload.message;
+  }
+  catch {
+    //ignore error
+  }
+  return {
+    message ,
+    statusCode : response.status,
+  }
+}
 const listResponseCache = new WeakMap<Response, Promise<ListResponse>>();
 
 const getListPayload = (response: Response) => {
@@ -65,11 +79,14 @@ const options: CreateDataProviderOptions = {
     },
 
     mapResponse: async (response) => {
+      if(!response.ok) throw await buildHttpError(response);
+
       const payload = await getListPayload(response);
       return payload.data ?? [];
     },
 
     getTotalCount: async (response) => {
+      if(!response.ok) throw await buildHttpError(response);
       const payload = await getListPayload(response);
       return payload.pagination?.total ?? payload.data?.length ?? 0;
     },
