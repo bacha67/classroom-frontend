@@ -19,7 +19,9 @@ import { bannerPhoto } from "@/lib/cloudinary";
 import { ClassDetails } from "@/types";
 
 type ClassShowResponse = {
-    class: ClassDetails;
+    class: ClassDetails & {
+        status?: string | null;
+    };
     totals: {
         enrollments: number;
     };
@@ -144,6 +146,7 @@ const ClassesShow = () => {
     const placeholderUrl = `https://placehold.co/600x400?text=${encodeURIComponent(
         teacherInitials || "NA"
     )}`;
+    const classStatus = classDetails.status ?? "unknown";
 
     return (
         <ShowView className="class-view class-show space-y-6">
@@ -185,12 +188,10 @@ const ClassesShow = () => {
                         <div>
                             <Badge variant="outline">{classDetails.capacity} spots</Badge>
                             <Badge
-                                variant={
-                                    classDetails.status === "active" ? "default" : "secondary"
-                                }
-                                data-status={classDetails.status}
+                                variant={classStatus === "active" ? "default" : "secondary"}
+                                data-status={classStatus}
                             >
-                                {classDetails.status.toUpperCase()}
+                                {classStatus.toUpperCase()}
                             </Badge>
                         </div>
                     </div>
