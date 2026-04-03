@@ -153,38 +153,6 @@ const ClassesList = () => {
     const subjects = subjectsQuery.data?.data || [];
     const teachers = teachersQuery.data?.data || [];
 
-    const subjectFilters =
-        selectedSubject === "all"
-            ? []
-            : [
-                {
-                    field: "subject",
-                    operator: "eq" as const,
-                    value: selectedSubject,
-                },
-            ];
-
-    const teacherFilters =
-        selectedTeacher === "all"
-            ? []
-            : [
-                {
-                    field: "teacher",
-                    operator: "eq" as const,
-                    value: selectedTeacher,
-                },
-            ];
-
-    const searchFilters = searchQuery.trim()
-        ? [
-            {
-                field: "name",
-                operator: "contains" as const,
-                value: searchQuery.trim(),
-            },
-        ]
-        : [];
-
     const classesTable = useTable<ClassListItem>({
         columns: classColumns,
         refineCoreProps: {
@@ -205,19 +173,47 @@ const ClassesList = () => {
     });
 
     const {
-        refineCore: { setFilters, setCurrentPage },
+        refineCore: { currentPage, setFilters, setCurrentPage },
     } = classesTable;
 
-    useEffect(() => {
-        const nextFilters: CrudFilter[] = [
-            ...subjectFilters,
-            ...teacherFilters,
-            ...searchFilters,
-        ];
+    const nextFilters = useMemo<CrudFilter[]>(() => {
+        const filters: CrudFilter[] = [];
 
+        const normalizedSearch = searchQuery.trim();
+
+        if (selectedSubject !== "all") {
+            filters.push({
+                field: "subject",
+                operator: "eq",
+                value: selectedSubject,
+            });
+        }
+
+        if (selectedTeacher !== "all") {
+            filters.push({
+                field: "teacher",
+                operator: "eq",
+                value: selectedTeacher,
+            });
+        }
+
+        if (normalizedSearch) {
+            filters.push({
+                field: "name",
+                operator: "contains",
+                value: normalizedSearch,
+            });
+        }
+
+        return filters;
+    }, [searchQuery, selectedSubject, selectedTeacher]);
+
+    useEffect(() => {
         setFilters(nextFilters, "replace");
-        setCurrentPage(1);
-    }, [searchFilters, setCurrentPage, setFilters, subjectFilters, teacherFilters]);
+        if (currentPage !== 1) {
+            setCurrentPage(1);
+        }
+    }, [currentPage, nextFilters, setCurrentPage, setFilters]);
 
     return (
         <ListView>
