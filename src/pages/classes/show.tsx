@@ -18,83 +18,102 @@ import { Separator } from "@/components/ui/separator";
 import { bannerPhoto } from "@/lib/cloudinary";
 import { ClassDetails } from "@/types";
 
-type ClassUser = {
-    id: string;
-    name: string;
-    email: string;
-    role: string;
-    image?: string | null;
+type ClassShowResponse = {
+    class: ClassDetails;
+    totals: {
+        enrollments: number;
+    };
+};
+
+type ClassStudent = {
+    enrollmentId: number;
+    student?: {
+        id: string;
+        name: string;
+        email: string;
+        role: string;
+        image?: string | null;
+    } | null;
+    createdAt?: string;
 };
 
 const ClassesShow = () => {
     const { id } = useParams();
     const classId = id ?? "";
 
-    const { query } = useShow<ClassDetails>({
+    const { query } = useShow<ClassShowResponse>({
         resource: "classes",
     });
 
-    const classDetails = query.data?.data;
+    const details = query.data?.data;
+    const classDetails = details?.class;
 
-    const studentColumns = useMemo<ColumnDef<ClassUser>[]>(
+    const studentColumns = useMemo<ColumnDef<ClassStudent>[]>(
         () => [
             {
                 id: "name",
-                accessorKey: "name",
+                accessorKey: "student.name",
                 size: 240,
                 header: () => <p className="column-title">Student</p>,
-                cell: ({ row }) => (
-                    <div className="flex items-center gap-2">
-                        <Avatar className="size-7">
-                            {row.original.image && (
-                                <AvatarImage src={row.original.image} alt={row.original.name} />
-                            )}
-                            <AvatarFallback>{getInitials(row.original.name)}</AvatarFallback>
-                        </Avatar>
-                        <div className="flex flex-col truncate">
-                            <span className="truncate">{row.original.name}</span>
-                            <span className="text-xs text-muted-foreground truncate">
-                {row.original.email}
-              </span>
+                cell: ({ row }) => {
+                    const student = row.original.student;
+
+                    if (!student) {
+                        return <span className="text-muted-foreground">Unknown student</span>;
+                    }
+
+                    return (
+                        <div className="flex items-center gap-2">
+                            <Avatar className="size-7">
+                                {student.image && (
+                                    <AvatarImage src={student.image} alt={student.name} />
+                                )}
+                                <AvatarFallback>{getInitials(student.name)}</AvatarFallback>
+                            </Avatar>
+                            <div className="flex flex-col truncate">
+                                <span className="truncate">{student.name}</span>
+                                <span className="text-xs text-muted-foreground truncate">
+                                    {student.email}
+                                </span>
+                            </div>
                         </div>
-                    </div>
-                ),
+                    );
+                },
             },
             {
                 id: "details",
                 size: 140,
                 header: () => <p className="column-title">Details</p>,
-                cell: ({ row }) => (
-                    <ShowButton
-                        resource="users"
-                        recordItemId={row.original.id}
-                        variant="outline"
-                        size="sm"
-                    >
-                        View
-                    </ShowButton>
-                ),
+                cell: ({ row }) => {
+                    const student = row.original.student;
+
+                    if (!student) {
+                        return <span className="text-muted-foreground">Unavailable</span>;
+                    }
+
+                    return (
+                        <ShowButton
+                            resource="users"
+                            recordItemId={student.id}
+                            variant="outline"
+                            size="sm"
+                        >
+                            View
+                        </ShowButton>
+                    );
+                },
             },
         ],
         []
     );
 
-    const studentsTable = useTable<ClassUser>({
+    const studentsTable = useTable<ClassStudent>({
         columns: studentColumns,
         refineCoreProps: {
-            resource: `classes/${classId}/users`,
+            resource: `classes/${classId}/students`,
             pagination: {
                 pageSize: 3,
                 mode: "server",
-            },
-            filters: {
-                permanent: [
-                    {
-                        field: "role",
-                        operator: "eq",
-                        value: "student",
-                    },
-                ],
             },
         },
     });

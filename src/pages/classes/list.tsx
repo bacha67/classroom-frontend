@@ -17,7 +17,6 @@ import { ListView } from "@/components/refine-ui/views/list-view";
 import { CreateButton } from "@/components/refine-ui/buttons/create";
 import { Breadcrumb } from "@/components/refine-ui/layout/breadcrumb";
 import { DataTable } from "@/components/refine-ui/data-table/data-table";
-import { ShowButton } from "@/components/refine-ui/buttons/show";
 
 import { Subject, User } from "@/types";
 
@@ -126,21 +125,6 @@ const ClassesList = () => {
                     return <span className="text-foreground">{capacity}</span>;
                 },
             },
-            {
-                id: "details",
-                size: 140,
-                header: () => <p className="column-title">Details</p>,
-                cell: ({ row }) => (
-                    <ShowButton
-                        resource="classes"
-                        recordItemId={row.original.id}
-                        variant="outline"
-                        size="sm"
-                    >
-                        View
-                    </ShowButton>
-                ),
-            },
         ],
         []
     );
@@ -169,6 +153,38 @@ const ClassesList = () => {
     const subjects = subjectsQuery.data?.data || [];
     const teachers = teachersQuery.data?.data || [];
 
+    const subjectFilters =
+        selectedSubject === "all"
+            ? []
+            : [
+                {
+                    field: "subject",
+                    operator: "eq" as const,
+                    value: selectedSubject,
+                },
+            ];
+
+    const teacherFilters =
+        selectedTeacher === "all"
+            ? []
+            : [
+                {
+                    field: "teacher",
+                    operator: "eq" as const,
+                    value: selectedTeacher,
+                },
+            ];
+
+    const searchFilters = searchQuery.trim()
+        ? [
+            {
+                field: "name",
+                operator: "contains" as const,
+                value: searchQuery.trim(),
+            },
+        ]
+        : [];
+
     const classesTable = useTable<ClassListItem>({
         columns: classColumns,
         refineCoreProps: {
@@ -193,35 +209,15 @@ const ClassesList = () => {
     } = classesTable;
 
     useEffect(() => {
-        const nextFilters: CrudFilter[] = [];
-
-        if (selectedSubject !== "all") {
-            nextFilters.push({
-                field: "subject",
-                operator: "eq" as const,
-                value: selectedSubject,
-            });
-        }
-
-        if (selectedTeacher !== "all") {
-            nextFilters.push({
-                field: "teacher",
-                operator: "eq" as const,
-                value: selectedTeacher,
-            });
-        }
-
-        if (searchQuery.trim()) {
-            nextFilters.push({
-                field: "name",
-                operator: "contains" as const,
-                value: searchQuery.trim(),
-            });
-        }
+        const nextFilters: CrudFilter[] = [
+            ...subjectFilters,
+            ...teacherFilters,
+            ...searchFilters,
+        ];
 
         setFilters(nextFilters, "replace");
         setCurrentPage(1);
-    }, [searchQuery, selectedSubject, selectedTeacher, setCurrentPage, setFilters]);
+    }, [searchFilters, setCurrentPage, setFilters, subjectFilters, teacherFilters]);
 
     return (
         <ListView>
