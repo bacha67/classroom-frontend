@@ -15,6 +15,14 @@ import {
 } from "@/components/refine-ui/views/show-view";
 import type { User } from "@/types";
 
+type FacultyDetails = {
+    user: User;
+    totals: {
+        classes: number;
+        enrollments: number;
+    };
+};
+
 type FacultyDepartment = {
     id: number;
     name: string;
@@ -38,11 +46,12 @@ const FacultyShow = () => {
     const { id } = useParams();
     const userId = id ?? "";
 
-    const { query } = useShow<User>({
+    const { query } = useShow<FacultyDetails>({
         resource: "users",
     });
 
-    const user = query.data?.data;
+    const details = query.data?.data;
+    const user = details?.user;
 
     const departmentColumns = useMemo<ColumnDef<FacultyDepartment>[]>(
         () => [
