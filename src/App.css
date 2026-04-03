@@ -191,29 +191,46 @@ body {
     font-family: var(--font-sans);
   }
   body {
-    @apply bg-background text-foreground;
+    @apply min-h-screen bg-background text-foreground;
+    background-image:
+      radial-gradient(circle at top left, color-mix(in oklch, var(--primary) 18%, transparent) 0, transparent 32rem),
+      radial-gradient(circle at top right, color-mix(in oklch, var(--chart-2) 14%, transparent) 0, transparent 28rem),
+      linear-gradient(180deg, color-mix(in oklch, var(--background) 92%, white) 0%, var(--background) 100%);
   }
 }
 
 @layer components {
   .page-title {
-    @apply text-3xl font-bold text-foreground tracking-tight;
+    @apply text-3xl sm:text-4xl font-semibold text-foreground tracking-tight;
   }
 
   .column-title {
-    @apply flex items-center gap-1 font-bold;
+    @apply flex items-center gap-1 text-[0.8rem] font-semibold uppercase tracking-[0.16em] text-muted-foreground;
   }
 
   .search-field {
-    @apply relative w-full max-h-9 md:max-w-72;
+    @apply relative w-full md:max-w-80;
 
     .search-icon {
       @apply absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary;
     }
+
+    input {
+      @apply h-11 rounded-xl border-border/70 bg-card/80 pr-4 shadow-sm backdrop-blur;
+    }
   }
 
   .actions-row {
-    @apply flex flex-col gap-3 sm:flex-row sm:gap-2 w-full sm:w-auto;
+    @apply flex w-full flex-col gap-3 xl:w-auto xl:flex-row xl:items-center;
+
+    > div:last-child,
+    > .flex {
+      @apply flex w-full flex-col gap-3 sm:flex-row sm:flex-wrap xl:w-auto;
+    }
+
+    [data-slot="select-trigger"] {
+      @apply h-11 min-w-0 rounded-xl border-border/70 bg-card/85 shadow-sm backdrop-blur sm:min-w-52;
+    }
   }
 
   .sign-up {
@@ -410,15 +427,29 @@ body {
   }
 
   .intro-row {
-    @apply flex flex-col gap-5 lg:flex-row justify-between space-y-4;
+    @apply relative overflow-hidden rounded-[1.75rem] border border-border/60 bg-card/75 px-5 py-5 shadow-lg backdrop-blur sm:px-7 sm:py-6 lg:flex-row lg:items-end lg:justify-between;
+
+    &::before {
+      content: "";
+      @apply absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent;
+    }
+
+    > p {
+      @apply relative z-10 max-w-2xl text-sm leading-6 text-muted-foreground sm:text-base;
+    }
   }
 
   .class-view {
-    @apply container mx-auto pb-8 px-2 sm:px-4;
+    @apply container mx-auto space-y-6 px-2 pb-10 sm:px-4 lg:space-y-8;
   }
 
   .class-form-card {
-    @apply max-w-3xl gap-2 w-full mx-auto relative overflow-hidden border shadow-sm border-foreground/20;
+    @apply relative mx-auto w-full max-w-3xl gap-2 overflow-hidden rounded-[1.75rem] border border-border/70 bg-card/92 shadow-xl;
+
+    &::before {
+      content: "";
+      @apply absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-primary/80 via-chart-4/70 to-chart-2/70;
+    }
   }
 
   .upload-dropzone {
@@ -459,7 +490,7 @@ body {
 
   .class-show {
     .state-message {
-      @apply mt-6 text-sm text-muted-foreground;
+      @apply mt-6 rounded-2xl border border-border/60 bg-card/70 px-4 py-5 text-sm text-muted-foreground shadow-sm;
     }
 
     .state-message.is-error {
@@ -467,134 +498,187 @@ body {
     }
 
     .banner {
-      @apply mt-5 mb-1;
+      @apply mt-4 mb-1 overflow-hidden rounded-[1.75rem] border border-border/60 bg-card/80 p-2 shadow-xl;
 
       img {
-        @apply w-full aspect-5/1 rounded-xl object-cover shadow-md;
+        @apply aspect-[5/1.45] w-full rounded-[1.2rem] object-cover shadow-md sm:aspect-[5/1];
       }
 
       .placeholder {
-        @apply h-72 w-full bg-slate-200;
+        @apply h-56 w-full rounded-[1.2rem] bg-muted sm:h-72;
       }
     }
 
     .details-card {
-      @apply p-6 sm:p-8 space-y-3 shadow-md;
+      @apply space-y-5 rounded-[1.75rem] border border-border/60 bg-card/92 p-5 shadow-xl sm:p-8;
     }
 
     .details-header {
-      @apply flex flex-col sm:flex-row sm:items-start justify-between gap-5 mb-4;
+      @apply mb-4 flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between;
 
       > div:first-child {
-        @apply flex-1 space-y-2;
+        @apply flex-1 space-y-2.5;
 
         h1 {
-          @apply text-xl sm:text-2xl font-bold;
+          @apply text-2xl font-semibold tracking-tight sm:text-3xl;
         }
 
         p {
-          @apply text-sm text-muted-foreground;
+          @apply max-w-2xl text-sm leading-6 text-muted-foreground sm:text-base;
         }
       }
 
       > div:last-child {
-        @apply space-x-2;
+        @apply flex flex-wrap gap-2;
 
         > * {
-          @apply px-3 py-1;
+          @apply px-3 py-1.5;
         }
 
         [data-status="active"] {
-          @apply bg-green-600 text-white;
+          @apply bg-emerald-600 text-white;
         }
 
         [data-status="inactive"] {
-          @apply bg-gray-600 text-white;
+          @apply bg-slate-600 text-white;
+        }
+
+        [data-status="unknown"] {
+          @apply bg-amber-500 text-white;
         }
       }
     }
 
     .details-grid {
-      @apply grid sm:grid-cols-2 mt-8 gap-10 text-sm;
+      @apply mt-8 grid gap-4 text-sm lg:grid-cols-2;
     }
 
     .instructor {
-      @apply space-y-2;
+      @apply rounded-2xl border border-border/60 bg-background/70 p-4 shadow-sm;
 
       > p {
-        @apply text-xs mb-3 font-bold text-gray-400 uppercase tracking-wider;
+        @apply mb-3 text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-muted-foreground;
       }
 
       > div {
-        @apply space-y-2 flex items-center gap-2;
+        @apply flex items-center gap-3;
       }
 
       img {
-        @apply size-13 rounded-full object-cover;
+        @apply size-14 rounded-2xl object-cover ring-2 ring-primary/10;
       }
 
       > div > div > p:first-child {
-        @apply text-base font-mono font-bold text-primary;
+        @apply text-base font-semibold text-foreground;
       }
 
       > div > div > p:last-child {
-        @apply text-sm font-medium mb-2;
+        @apply text-sm text-muted-foreground;
       }
     }
 
     .department {
-      @apply space-y-2;
+      @apply rounded-2xl border border-border/60 bg-background/70 p-4 shadow-sm;
 
       > p {
-        @apply text-xs font-bold text-muted-foreground uppercase tracking-wider;
+        @apply text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-muted-foreground;
       }
 
       > div {
-        @apply space-y-2;
+        @apply space-y-2 pt-3;
 
         p:first-child {
-          @apply text-lg font-bold text-primary;
+          @apply text-lg font-semibold text-foreground;
         }
 
         p:last-child {
-          @apply text-sm text-muted-foreground line-clamp-1;
+          @apply text-sm leading-6 text-muted-foreground;
         }
       }
     }
 
     .subject {
-      @apply space-y-2;
+      @apply rounded-2xl border border-border/60 bg-background/70 p-4 shadow-sm;
 
       > p {
-        @apply text-xs font-bold text-muted-foreground uppercase tracking-wider;
+        @apply text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-muted-foreground;
       }
 
       > div {
-        @apply space-y-2;
+        @apply space-y-2 pt-3;
 
         span {
           @apply font-extrabold;
         }
 
         p:first-of-type {
-          @apply text-lg font-bold text-primary;
+          @apply text-lg font-semibold text-foreground;
         }
 
         p:last-of-type {
-          @apply text-sm text-muted-foreground mt-2 leading-relaxed;
+          @apply mt-2 text-sm leading-6 text-muted-foreground;
         }
       }
     }
 
     .join {
-      @apply space-y-2;
+      @apply rounded-2xl border border-border/60 bg-primary/[0.06] p-4 shadow-sm;
 
       h2 {
-        @apply text-xs font-bold text-muted-foreground uppercase tracking-wider;
+        @apply text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-muted-foreground;
       }
 
       ol {
-        @apply text-sm text-muted-foreground space-y-1.5 list-decimal list-inside mt-2;
+        @apply mt-3 list-decimal space-y-2 pl-5 text-sm leading-6 text-muted-foreground;
+      }
+    }
+
+    .details-card > .w-full {
+      @apply mt-2 h-12 rounded-2xl shadow-md shadow-primary/10;
+    }
+  }
+
+  .class-view .border {
+    @apply border-border/60;
+  }
+
+  .class-view [data-slot="card"] {
+    @apply rounded-[1.5rem] border-border/60 bg-card/92 shadow-lg;
+  }
+
+  .class-view table {
+    @apply bg-card/70;
+  }
+
+  .class-view th {
+    @apply h-12 bg-muted/35;
+  }
+
+  .class-view td,
+  .class-view th {
+    @apply px-3 sm:px-4;
+  }
+
+  @media (max-width: 640px) {
+    .page-title {
+      @apply text-[2rem];
+    }
+
+    .intro-row {
+      @apply rounded-[1.4rem] px-4 py-4;
+    }
+
+    .class-show {
+      .details-card {
+        @apply rounded-[1.4rem] p-4;
+      }
+
+      .banner {
+        @apply rounded-[1.4rem] p-1.5;
+      }
+
+      .details-grid {
+        @apply gap-3;
       }
     }
   }
