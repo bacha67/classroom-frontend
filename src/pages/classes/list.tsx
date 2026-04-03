@@ -1,8 +1,8 @@
 import { Search } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ColumnDef } from "@tanstack/react-table";
 import { useTable } from "@refinedev/react-table";
-import { useList } from "@refinedev/core";
+import { type CrudFilter, useList } from "@refinedev/core";
 
 import {
     Select,
@@ -169,38 +169,6 @@ const ClassesList = () => {
     const subjects = subjectsQuery.data?.data || [];
     const teachers = teachersQuery.data?.data || [];
 
-    const subjectFilters =
-        selectedSubject === "all"
-            ? []
-            : [
-                {
-                    field: "subject",
-                    operator: "eq" as const,
-                    value: selectedSubject,
-                },
-            ];
-
-    const teacherFilters =
-        selectedTeacher === "all"
-            ? []
-            : [
-                {
-                    field: "teacher",
-                    operator: "eq" as const,
-                    value: selectedTeacher,
-                },
-            ];
-
-    const searchFilters = searchQuery
-        ? [
-            {
-                field: "name",
-                operator: "contains" as const,
-                value: searchQuery,
-            },
-        ]
-        : [];
-
     const classesTable = useTable<ClassListItem>({
         columns: classColumns,
         refineCoreProps: {
@@ -208,10 +176,6 @@ const ClassesList = () => {
             pagination: {
                 pageSize: 10,
                 mode: "server",
-            },
-            filters: {
-                // Compose refine filters from the current UI selections.
-                permanent: [...subjectFilters, ...teacherFilters, ...searchFilters],
             },
             sorters: {
                 initial: [
@@ -223,6 +187,41 @@ const ClassesList = () => {
             },
         },
     });
+
+    const {
+        refineCore: { setFilters, setCurrentPage },
+    } = classesTable;
+
+    useEffect(() => {
+        const nextFilters: CrudFilter[] = [];
+
+        if (selectedSubject !== "all") {
+            nextFilters.push({
+                field: "subject",
+                operator: "eq" as const,
+                value: selectedSubject,
+            });
+        }
+
+        if (selectedTeacher !== "all") {
+            nextFilters.push({
+                field: "teacher",
+                operator: "eq" as const,
+                value: selectedTeacher,
+            });
+        }
+
+        if (searchQuery.trim()) {
+            nextFilters.push({
+                field: "name",
+                operator: "contains" as const,
+                value: searchQuery.trim(),
+            });
+        }
+
+        setFilters(nextFilters, "replace");
+        setCurrentPage(1);
+    }, [searchQuery, selectedSubject, selectedTeacher, setCurrentPage, setFilters]);
 
     return (
         <ListView>
