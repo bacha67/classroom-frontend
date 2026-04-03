@@ -2,7 +2,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { useCreate, useGetIdentity } from "@refinedev/core";
-import { useNavigate } from "react-router";
+import { useNavigate, useSearchParams } from "react-router";
 
 import { Breadcrumb } from "@/components/refine-ui/layout/breadcrumb";
 import { CreateView } from "@/components/refine-ui/views/create-view";
@@ -28,16 +28,18 @@ type JoinFormValues = z.infer<typeof joinSchema>;
 
 const EnrollmentsJoin = () => {
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
     const {
         mutateAsync: joinEnrollment,
         mutation: { isPending },
     } = useCreate();
     const { data: currentUser } = useGetIdentity<User>();
+    const initialInviteCode = searchParams.get("inviteCode") ?? "";
 
     const form = useForm<JoinFormValues>({
         resolver: zodResolver(joinSchema),
         defaultValues: {
-            inviteCode: "",
+            inviteCode: initialInviteCode,
         },
     });
 
